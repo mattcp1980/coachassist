@@ -1,1 +1,3 @@
-rootProject.name = "coach-assist-service"
+rootProject.name = "coach-assist-backend"
+
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")

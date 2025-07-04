@@ -1,5 +1,5 @@
 # Ignore Gradle build artifacts and cache
-build/
+#build/
 .gradle/
 
 # Ignore IDE-specific files

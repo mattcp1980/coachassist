@@ -1,0 +1,7 @@
+encryptionsalt: v1:Vu8KqqxnMLc=:v1:c9VIQBGmTcscpyT4:1kUpXpoyRHICzAlnVlcqBSgwlq/OJg==
+config:
+  gcp:project: amiable-wonder-261523
+  gcp:region: europe-west1
+  coach-assist-infra:repoName: coach-assist-repo
+  coach-assist-infra:serviceName: coach-assist-service
+  coach-assist-infra:deployService: "true"

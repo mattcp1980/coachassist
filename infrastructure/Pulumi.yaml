@@ -1,0 +1,4 @@
+name: coach-assist-infra
+runtime:
+  name: nodejs
+description: GCP infrastructure for the CoachAssist application.

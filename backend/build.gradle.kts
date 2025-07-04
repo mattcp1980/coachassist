@@ -1,18 +1,21 @@
 plugins {
-    alias(libs.plugins.kotlin.jvm)
-    alias(libs.plugins.ktor)
-    alias(libs.plugins.shadow)
-    alias(libs.plugins.kotlin.serialization)
+    id("org.jetbrains.kotlin.jvm") version "1.9.22"
+    id("io.ktor.plugin") version "2.3.8"
+    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.22"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
+    application
 }
 
 group = "com.coachassist"
-version = "0.0.1"
+version = "1.0-SNAPSHOT"
 
 application {
-    mainClass.set("com.coachassist.ApplicationKt")
+    // Make sure this points to your Ktor application's entry point
+    mainClass.set("io.ktor.server.netty.EngineMain")
+}
 
-    val isDevelopment: Boolean = project.ext.has("development")
-    applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
+kotlin {
+    jvmToolchain(17)
 }
 
 repositories {
@@ -20,25 +23,30 @@ repositories {
 }
 
 dependencies {
-    // Ktor Core
-    implementation(libs.ktor.server.core)
-    implementation(libs.ktor.server.netty)
+    // Ktor server dependencies
+    implementation("io.ktor:ktor-server-core-jvm:2.3.8")
+    implementation("io.ktor:ktor-server-netty-jvm:2.3.8")
 
-    // Ktor Content Negotiation for JSON
-    implementation(libs.ktor.server.contentNegotiation)
-    implementation(libs.ktor.serialization.kotlinxJson)
+    // Content negotiation and JSON serialization
+    implementation("io.ktor:ktor-server-content-negotiation-jvm:2.3.8")
+    implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:2.3.8")
 
-    // Ktor Status Pages for error handling
-    implementation(libs.ktor.server.statusPages)
+    // Status pages for error handling
+    implementation("io.ktor:ktor-server-status-pages-jvm:2.3.8")
 
     // Logging
-    implementation(libs.logback.classic)
-    testImplementation(libs.ktor.server.tests)
-    testImplementation(libs.kotlin.test.junit)
+    implementation("ch.qos.logback:logback-classic:1.4.14")
+
+    // Testing
+    testImplementation("io.ktor:ktor-server-tests-jvm:2.3.8")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.9.22")
 }
 
-tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> { // This is often redundant if the application plugin is configured, but it's harmless.
+tasks.shadowJar {
+    archiveBaseName.set("coach-assist-backend")
+    archiveClassifier.set("")
+    archiveFileName.set("coach-assist-backend-all.jar")
     manifest {
-        attributes["Main-Class"] = "com.coachassist.ApplicationKt"
+        attributes("Main-Class" to "io.ktor.server.netty.EngineMain")
     }
 }
