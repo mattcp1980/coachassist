@@ -41,8 +41,12 @@ const repository = new gcp.artifactregistry.Repository(repoName, {
     description: "Docker repository for CoachAssist service",
 }, { dependsOn: [artifactRegistryApi] });
 
-// Define image name — matches Jib target
-const imageName = pulumi.interpolate`${location}-docker.pkg.dev/${projectId}/${repoName}/${serviceName}:latest`;
+// Define image name with dynamic tag support
+const imageTag = stackConfig.get("imageTag") || "latest";
+const imageName = pulumi.interpolate`${location}-docker.pkg.dev/${projectId}/${repoName}/${serviceName}:${imageTag}`;
+
+// Create deployment timestamp to force updates
+const deploymentTime = new Date().toISOString();
 
 // Create custom service account
 const serviceAccount = new gcp.serviceaccount.Account("coach-assist-sa", {
@@ -54,6 +58,13 @@ const serviceAccount = new gcp.serviceaccount.Account("coach-assist-sa", {
 const firestoreAccess = new gcp.projects.IAMMember("coach-assist-sa-firestore", {
     project: projectId,
     role: "roles/datastore.user",
+    member: pulumi.interpolate`serviceAccount:${serviceAccount.email}`,
+});
+
+// Grant Vertex AI access for Gemini
+const vertexAiAccess = new gcp.projects.IAMMember("coach-assist-sa-vertex", {
+    project: projectId,
+    role: "roles/aiplatform.user",
     member: pulumi.interpolate`serviceAccount:${serviceAccount.email}`,
 });
 
@@ -79,12 +90,27 @@ const service = new gcp.cloudrun.Service(serviceName, {
                         name: "GRPC_VERBOSITY",
                         value: "ERROR",
                     },
+                    // PORT is automatically set by Cloud Run - DO NOT include it here
                 ],
                 resources: {
                     limits: {
                         memory: "1Gi",
                         cpu: "1000m",
                     },
+                    requests: {
+                        memory: "512Mi",
+                        cpu: "500m",
+                    },
+                },
+                livenessProbe: {
+                    httpGet: {
+                        path: "/health",
+                        port: 8080,
+                    },
+                    initialDelaySeconds: 30,
+                    timeoutSeconds: 10,
+                    periodSeconds: 30,
+                    failureThreshold: 3,
                 },
                 startupProbe: {
                     httpGet: {
@@ -104,10 +130,15 @@ const service = new gcp.cloudrun.Service(serviceName, {
             annotations: {
                 "run.googleapis.com/startup-cpu-boost": "true",
                 "run.googleapis.com/execution-environment": "gen2",
+                "run.googleapis.com/cpu-throttling": "false",
+                "autoscaling.knative.dev/minScale": "0",
+                "autoscaling.knative.dev/maxScale": "10",
+                "app.deploy-time": deploymentTime,
+                "app.image-tag": imageTag,
             },
         },
     },
-}, { dependsOn: [cloudrunApi, vertexAiApi, database, firestoreAccess] });
+}, { dependsOn: [cloudrunApi, vertexAiApi, database, firestoreAccess, vertexAiAccess] });
 
 // Allow public access
 const iamMember = new gcp.cloudrun.IamMember("iam-public-access", {
@@ -118,10 +149,16 @@ const iamMember = new gcp.cloudrun.IamMember("iam-public-access", {
     member: "allUsers",
 }, { dependsOn: [service] });
 
-// Export service URL
+// Export useful values
 export const serviceUrl = service.statuses.apply(statuses => {
     if (statuses && statuses.length > 0 && statuses[0].url) {
         return statuses[0].url;
     }
     return "";
 });
+
+export const serviceAccountEmail = serviceAccount.email;
+export const repositoryUrl = repository.name;
+export const imageNameOutput = imageName;
+export const deploymentTimestamp = deploymentTime;
+export const currentImageTag = imageTag;

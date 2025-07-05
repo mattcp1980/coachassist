@@ -12,7 +12,9 @@ fun Application.configureHTTP() {
 
         // Allow common HTTP methods and headers
         allowMethod(HttpMethod.Options)
+        allowMethod(HttpMethod.Get)
         allowMethod(HttpMethod.Post)
         allowHeader(HttpHeaders.ContentType)
+        allowHeader(HttpHeaders.Authorization) // Good to have for future auth needs
     }
 }
