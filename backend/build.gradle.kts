@@ -34,10 +34,10 @@ dependencies {
     // Google GenAI
     implementation("com.google.genai:google-genai:0.6.1")
 
-    // Google Cloud
+    // Google Cloud Firestore
     implementation("com.google.cloud:google-cloud-firestore:3.15.0")
 
-    // gRPC dependencies — pin to 1.61.1 to keep InternalGlobalInterceptors
+    // gRPC versions pinned to avoid "InternalGlobalInterceptors" error
     implementation("io.grpc:grpc-core:1.61.1")
     implementation("io.grpc:grpc-api:1.61.1")
     implementation("io.grpc:grpc-context:1.61.1")
@@ -49,12 +49,24 @@ dependencies {
     // Logging
     implementation("ch.qos.logback:logback-classic:1.4.14")
 
-    // Testing
+    // Tests
     testImplementation("io.ktor:ktor-server-tests-jvm:2.3.8")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.9.22")
-}
 
-// ✅ Jib configuration — packaged mode
+    
+}
+configurations.all {
+    resolutionStrategy {
+        force(
+            "io.grpc:grpc-core:1.61.1",
+            "io.grpc:grpc-api:1.61.1",
+            "io.grpc:grpc-context:1.61.1",
+            "io.grpc:grpc-netty-shaded:1.61.1",
+            "io.grpc:grpc-protobuf:1.61.1",
+            "io.grpc:grpc-stub:1.61.1"
+        )
+    }
+}
 jib {
     containerizingMode = "packaged"
     from {
