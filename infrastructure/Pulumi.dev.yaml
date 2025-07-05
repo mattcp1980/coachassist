@@ -5,3 +5,6 @@ config:
   coach-assist-infra:repoName: coach-assist-repo
   coach-assist-infra:serviceName: coach-assist-service
   coach-assist-infra:deployService: "true"
+  coach-assist-infra:geminiApiKey:
+    secure: v1:ntqsE+vQmnIepSbC:c/6fhzZ4xej40K4uLMyacZCoRtMJMyGRt8gLK3BNbSHK3wYmUvRb3cpHKmIeXVRAbvtCriBHmg==
+  coach-assist-infra:usePlaceholderImage: "false"

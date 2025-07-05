@@ -1,14 +1,25 @@
 package com.coachassist
 
+import com.coachassist.config.FirestoreConfig
+import com.coachassist.plugins.configureHTTP
 import com.coachassist.plugins.configureRouting
 import com.coachassist.plugins.configureSerialization
 import io.ktor.server.application.*
 
-// The main function is now delegated to Ktor's EngineMain,
-// which reads configuration from application.conf
-fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
+fun main(args: Array<String>) {
+    // Set gRPC system properties BEFORE anything else
+    System.setProperty("io.grpc.internal.DnsNameResolverProvider.enable_grpclb", "false")
+    System.setProperty("io.grpc.internal.DnsNameResolverProvider.enable_service_config", "false")
+    
+    // Now start the Ktor server
+    io.ktor.server.netty.EngineMain.main(args)
+}
 
 fun Application.module() {
+    // Initialize Firestore at startup — optional but recommended
+    FirestoreConfig.initialize()
+
     configureSerialization()
+    configureHTTP()
     configureRouting()
 }

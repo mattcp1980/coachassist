@@ -27,7 +27,7 @@ export SERVICE_NAME="coach-assist-service"
 export IMAGE_TAG="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${SERVICE_NAME}:latest"
 
 # --- 1. Provision Infrastructure (pre-build) ---
-echo "--- Ensuring infrastructure exists with Pulumi ---"
+echo "--- Ensuring infrastructure exists and deploying placeholder service ---"
 # This first run creates the Artifact Registry repository.
 (cd infrastructure && \
     echo "--- Installing infrastructure dependencies ---" && \
@@ -37,11 +37,13 @@ echo "--- Ensuring infrastructure exists with Pulumi ---"
     # Log in to the GCS backend to store state remotely.
     pulumi login "gs://${PULUMI_STATE_BUCKET}" && \
     pulumi stack select dev --create && \
+    echo "--- Refreshing Pulumi state to match cloud resources ---" && \
+    pulumi refresh --yes && \
     pulumi config set gcp:project "${PROJECT_ID}" && \
     pulumi config set gcp:region "${REGION}" && \
     pulumi config set repoName "${REPO_NAME}" && \
     pulumi config set serviceName "${SERVICE_NAME}" && \
-    pulumi config set deployService false && \
+    pulumi config set usePlaceholderImage true && \
     pulumi up --yes)
 
 # --- 2. Build the Application ---
@@ -63,7 +65,7 @@ docker push "${IMAGE_TAG}"
 echo "--- Updating Cloud Run service with new image via Pulumi ---"
 # This second run will update the Cloud Run service with the new image we just pushed.
 (cd infrastructure && \
-    pulumi config set deployService true && \
+    pulumi config set usePlaceholderImage false && \
     pulumi up --yes --skip-preview)
 
 echo "--- Deployment complete! ---"
