@@ -5,7 +5,7 @@ plugins {
     id("org.jetbrains.kotlin.jvm") version "1.9.22"
     id("io.ktor.plugin") version "2.3.8"
     id("org.jetbrains.kotlin.plugin.serialization") version "1.9.22"
-    id("com.google.cloud.tools.jib") version "3.4.1"
+    id("com.google.cloud.tools.jib") version "3.4.5"
     application
 }
 
