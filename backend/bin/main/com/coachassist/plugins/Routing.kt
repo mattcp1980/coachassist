@@ -1,6 +1,7 @@
 package com.coachassist.plugins
 
 import com.coachassist.models.SessionPlanRequest
+import com.coachassist.models.SavePlanRequest
 import com.coachassist.models.UserProfile
 import com.coachassist.services.SessionPlannerService
 import com.coachassist.services.UserProfileService
@@ -71,6 +72,61 @@ fun Application.configureRouting() {
                     } catch (e: Exception) {
                         application.log.error("Failed to get profile for email $email", e)
                         call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "An error occurred while fetching the profile. Check server logs for details."))
+                    }
+                }
+            }
+
+            route("/session-plans") {
+                post {
+                    try {
+                        val request = call.receive<SavePlanRequest>()
+                        val savedPlan = userProfileService.saveSessionPlan(request)
+                        call.respond(HttpStatusCode.Created, savedPlan)
+                    } catch (e: SerializationException) {
+                        call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid request body: ${e.cause?.message}"))
+                    } catch (e: NoSuchElementException) {
+                        call.respond(HttpStatusCode.NotFound, mapOf("error" to e.message))
+                    } catch (e: Exception) {
+                        application.log.error("Failed to save session plan", e)
+                        call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "An unexpected error occurred while saving the plan."))
+                    }
+                }
+
+                get {
+                    val email = call.request.queryParameters["email"]
+                    if (email.isNullOrBlank()) {
+                        return@get call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Email must be provided as a query parameter."))
+                    }
+
+                    try {
+                        val summaries = userProfileService.getSessionPlanSummaries(email)
+                        call.respond(HttpStatusCode.OK, summaries)
+                    } catch (e: NoSuchElementException) {
+                        call.respond(HttpStatusCode.NotFound, mapOf("error" to e.message))
+                    } catch (e: Exception) {
+                        application.log.error("Failed to get session plans for email $email", e)
+                        call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "An error occurred while fetching plan summaries."))
+                    }
+                }
+
+                get("/{planId}") {
+                    val planId = call.parameters["planId"]
+                    val email = call.request.queryParameters["email"]
+
+                    if (planId.isNullOrBlank()) {
+                        return@get call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Plan ID must be provided in the path."))
+                    }
+                    if (email.isNullOrBlank()) {
+                        return@get call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Email must be provided as a query parameter."))
+                    }
+
+                    try {
+                        val plan = userProfileService.getSavedSessionPlan(email, planId)
+                        plan?.let { call.respond(HttpStatusCode.OK, it) }
+                            ?: call.respond(HttpStatusCode.NotFound, mapOf("error" to "Plan not found."))
+                    } catch (e: Exception) {
+                        application.log.error("Failed to get session plan $planId for email $email", e)
+                        call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "An error occurred while fetching the plan."))
                     }
                 }
             }

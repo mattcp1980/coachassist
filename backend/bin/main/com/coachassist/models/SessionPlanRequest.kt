@@ -8,5 +8,6 @@ data class SessionPlanRequest(
     val focus: String,
     val durationMinutes: Int,
     val timeBreakdown: String,
-    val numberOfPlayers: Int
+    val numberOfPlayers: Int,
+    val extra: String = ""
 )

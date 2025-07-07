@@ -1,15 +1,11 @@
 package com.coachassist.services
 
+import com.coachassist.models.SessionPlan
 import com.coachassist.models.SessionPlanRequest
 import com.google.genai.Client
 import com.google.genai.types.GenerateContentResponse
-import kotlinx.serialization.Serializable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-
-// A simple data class to represent the AI's response.
-@Serializable
-data class SessionPlan(val plan: String)
 
 class SessionPlannerService(apiKey: String) {
     private val client = Client.builder()
@@ -39,11 +35,18 @@ class SessionPlannerService(apiKey: String) {
             - Number of Players: ${request.numberOfPlayers}
             - Desired Time Breakdown: "${request.timeBreakdown}"
             
+            Additional Context for the request "${request.extra}"
+
             The plan should be broken down based on the desired time breakdown provided as percentages of the total duration provided.
-            For each part, provide a brief overview of the activity, its duration, required e
-            quipment and the key coaching points. 
+            For each part, provide a brief overview of the activity, its duration, required equipment and the key coaching points. 
             
-            Return the response as a single block of text.
+            Return the response in detailed markdown format with:
+            - Clear section headers (## Section Name)
+            - Activity lists with bullet points
+            - Duration and timing information clearly marked
+            - Equipment lists
+            - Coaching notes in separate sections
+            This will make it easy to parse and display in a web interface.
         """.trimIndent()
         
         // Send the prompt to the AI and get the response.
