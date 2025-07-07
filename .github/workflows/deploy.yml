@@ -48,6 +48,10 @@ jobs:
       - name: Set up Pulumi
         uses: pulumi/actions@v5
 
+      - name: Install Node.js dependencies
+        working-directory: ./infrastructure
+        run: npm install
+
       - name: Deploy to Cloud Run with Pulumi
         working-directory: ./infrastructure
         run: |
