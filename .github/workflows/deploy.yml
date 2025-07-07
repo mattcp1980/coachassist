@@ -55,3 +55,5 @@ jobs:
           pulumi stack select dev
           pulumi config set imageTag ${{ steps.image_tag.outputs.tag }}
           pulumi up --yes
+        env:
+          PULUMI_CONFIG_PASSPHRASE: ${{ secrets.PULUMI_CONFIG_PASSPHRASE }}
