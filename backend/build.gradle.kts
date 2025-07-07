@@ -121,12 +121,6 @@ jib {
         image = "europe-west1-docker.pkg.dev/amiable-wonder-261523/coach-assist-repo/coach-assist-service"
         // Always include latest + a unique tag for proper versioning
         tags = setOf("latest", getBuildTag())
-        
-        // Authentication will use gcloud credentials
-        auth {
-            username = "_json_key"
-            password = System.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON") ?: ""
-        }
     }
     
     container {
