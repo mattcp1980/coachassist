@@ -37,7 +37,8 @@ class SessionPlannerService(apiKey: String) {
             
             Additional Context for the request "${request.extra}"
 
-            The plan should be broken down based on the desired time breakdown provided as percentages of the total duration provided.
+            The plan should be broken down based on the desired time breakdown provided as percentages of the total duration provided 
+            and limited to the Number of players provided ensuring only the number of players provided are involved in games.
             For each part, provide a brief overview of the activity, its duration, required equipment and the key coaching points. 
             
             Return the response in detailed markdown format with:
